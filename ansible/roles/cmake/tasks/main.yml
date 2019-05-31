@@ -1,0 +1,24 @@
+---
+- name: Install cmake build dependencies
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+  vars:
+    packages:
+      - build-essential
+
+- name: Download and Extract cmake latest
+  become: yes
+  unarchive:
+    src: "https://github.com/Kitware/CMake/releases/download/v3.14.4/cmake-3.14.4.tar.gz"
+    dest: "/usr/local/src/"
+    remote_src: yes
+    creates: "/usr/local/src/cmake-3.14.4"
+
+- name: Compile and Install cmake
+  become: yes
+  shell: "./bootstrap; make; make install"
+  args:
+    chdir: "/usr/local/src/cmake-3.14.4"
+    creates: "/usr/local/bin/cmake"

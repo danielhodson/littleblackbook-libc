@@ -1,0 +1,42 @@
+---
+- hosts: all
+
+  tasks:
+    # Improve performance, use local network cache
+    #    - name: Configure Nexus APT cache repo
+    #      import_role:
+    #        name: ../roles/nexus-client
+
+    # Upgrade the system packages
+    - name: Upgrade system and remove unused packages
+      become: yes
+      apt:
+        update_cache: yes
+        upgrade: yes
+        autoremove: yes
+
+    # tools for all ubuntu installs
+    - name: Install common packages
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        update_cache: yes
+      vars:
+        packages:
+        - git
+        - vim
+        - tmux
+        - build-essential
+        - gdb
+
+    - name: Install Clang
+      import_role:
+        name: ../roles/clang
+
+    - name: Install CMake
+      import_role:
+        name: ../roles/cmake
+
+    - name: Install AFL-latest
+      import_role:
+        name: ../roles/afl-latest

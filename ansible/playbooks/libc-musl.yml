@@ -1,0 +1,45 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Install musl-libc build dependencies
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        update_cache: yes
+      vars:
+        packages:
+          - git
+          - build-essential
+
+    - name: Clone musl repo
+      become: yes
+      git:
+        repo: "git://git.musl-libc.org/musl"
+        dest: "/usr/local/src/musl"
+
+    - name: configure musl build
+      become: yes
+      shell: "CC=$(which clang) ./configure --enable-debug"
+      args:
+        chdir: "/usr/local/src/musl"
+
+    - name: build musl
+      become: yes
+      shell: "make"
+      args:
+        chdir: "/usr/local/src/musl"
+
+    - name: install musl
+      become: yes
+      shell: "make install"
+      args:
+        chdir: "/usr/local/src/musl"
+
+    - name: update ld.so.conf
+      become: yes
+      shell: "echo '/usr/local/musl/lib' > /etc/ld.so.conf.d/musl.conf; ldconfig"
+
+    - name: update PATH with musl
+      become: yes
+      shell: "echo 'export PATH=/usr/local/musl/bin:$PATH' > /etc/profile.d/50-littleblackbook-musl.sh"

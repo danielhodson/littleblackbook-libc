@@ -1,0 +1,39 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Install libbsd build dependencies
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        update_cache: yes
+      vars:
+        packages:
+          - git
+          - build-essential
+          - autoconf
+          - automake
+          - libtool
+          - pkg-config
+
+    # Clone git repos for auditing
+    - name: Clone libbsd repo
+      become: yes
+      git:
+        repo: "https://anongit.freedesktop.org/git/libbsd.git"
+        dest: "/usr/local/src/libbsd"
+
+    - name: autogen libbsd
+      become: yes
+      shell: "./autogen"
+      args:
+        chdir: "/usr/local/src/libbsd"
+
+    - name: configure/build/install libbsd
+      become: yes
+      shell: "{{ item }}"
+      args:
+        chdir: "/usr/local/src/libbsd"
+      with_items:
+        - 'CC=/usr/lib/llvm-6.0/bin/clang CFLAGS="-g" ./configure; make; make install'
+        - 'CC=/usr/lib/llvm-6.0/bin/clang CFLAGS="-g -O1 -fsanitize=fuzzer-no-link" ./configure --prefix=/usr/local/libbsd-instrumented; make clean; make; make install'

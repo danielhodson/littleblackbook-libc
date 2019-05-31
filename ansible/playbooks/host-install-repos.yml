@@ -1,0 +1,54 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  vars:
+    audit_dir: "~/audit"
+
+  tasks:
+    # Packages
+    - name: Install required packages
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        update_cache: yes
+      vars:
+        packages:
+          - git
+          - cvs
+          - subversion
+
+    # Create audit directory
+    - name: Create audit directory
+      file:
+        path: "{{ audit_dir }}"
+        state: directory
+        mode: 0755
+
+    # Clone git repos for auditing
+    - name: Clone git audit repos
+      git:
+        repo: "{{ item.url }}"
+        dest: "{{ audit_dir }}/{{ item.name }}"
+      with_items:
+        - { name: "musl", url: "git://git.musl-libc.org/musl" }
+        - { name: "uClibc-ng", url: "git://uclibc-ng.org/git/uclibc-ng" }
+        - { name: "bionic", url: "https://android.googlesource.com/platform/bionic" }
+        - { name: "libbsd", url: "https://anongit.freedesktop.org/git/libbsd.git" }
+        - { name: "ucrt", url: "git@github.com:danielhodson/wdk-urt.git" } # WDK 10.0.17763.0
+        - { name: "glibc", url: "git://sourceware.org/git/glibc.git" }
+      ignore_errors: yes
+
+    - name: Clone cvs audit repos
+      command: "{{ item }}"
+      args:
+        chdir: "{{ audit_dir }}"
+      with_items:
+       - "cvs -qd anoncvs@anoncvs.ca.openbsd.org:/cvs co -d openbsd-libc src/lib/libc"
+       - "cvs -d :pserver:cvs@cvs.fefe.de:/cvs -z9 co dietlibc"
+
+    - name: Clone subversion audit repos
+      command: "{{ item }}"
+      args:
+        chdir: "{{ audit_dir }}"
+      with_items:
+       - "svn co https://svn.FreeBSD.org/base/stable/12/lib/libc FBSD-libc"

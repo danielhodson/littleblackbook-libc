@@ -1,0 +1,36 @@
+---
+- name: Install clang nightly key
+  become: yes
+  apt_key:
+    url: https://apt.llvm.org/llvm-snapshot.gpg.key
+    state: present
+
+- name: Install clang repo
+  become: yes
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    filename: clang-nightly
+  with_items:
+    - "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main"
+    - "deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic main"
+    - "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-8 main"
+    - "deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-8 main"
+
+- name: Install clang packages
+  become: yes
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - "clang-6.0"
+    - "lld-6.0"
+
+- name: update global PATH to include clang
+  become: yes
+  copy:
+    src: 50-littleblackbook-clang.sh
+    dest: /etc/profile.d/
+    owner: root
+    group: root
+    mode: 0644

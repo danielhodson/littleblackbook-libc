@@ -1,0 +1,4 @@
+# ansible-galaxy install -r requirements.yml
+
+- name: andrewrothstein.vagrant
+  version: v1.0.17

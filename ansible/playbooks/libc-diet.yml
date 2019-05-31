@@ -1,0 +1,32 @@
+---
+- hosts: all
+
+  tasks:
+    # Utilities
+    - name: Install dietlibc build dependencies
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        update_cache: yes
+      vars:
+        packages:
+          - cvs
+          - build-essential
+
+    - name: checkout dietlibc
+      become: yes
+      shell: 'cvs -d :pserver:cvs@cvs.fefe.de:/cvs -z9 co -D "2018-09-29" dietlibc'
+      args:
+        chdir: "/usr/local/src"
+
+    - name: build dietlibc
+      become: yes
+      shell: "CC=clang make DEBUG=1"
+      args:
+        chdir: "/usr/local/src/dietlibc"
+
+    - name: install dietlibc
+      become: yes
+      shell: "install diet /usr/local/bin"
+      args:
+        chdir: "/usr/local/src/dietlibc/bin-x86_64/"

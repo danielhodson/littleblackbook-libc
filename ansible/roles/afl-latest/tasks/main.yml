@@ -1,0 +1,24 @@
+---
+- name: Install afl build dependencies
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+  vars:
+    packages:
+      - build-essential
+
+- name: Download and Extract AFL latest
+  become: yes
+  unarchive:
+    src: "http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz"
+    dest: "/usr/local/src/"
+    remote_src: yes
+    creates: "/usr/local/src/{{ afl_version }}"
+
+- name: Compile and Install AFL
+  become: yes
+  shell: "export PATH=/usr/lib/llvm-6.0/bin/:$PATH CC=clang; make clean; make && make -C llvm_mode && make install"
+  args:
+    chdir: "/usr/local/src/{{ afl_version }}"
+    creates: "/usr/local/bin/afl-gcc"

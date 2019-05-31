@@ -1,0 +1,10 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+
+  tasks:
+    # Install vagrant for runtime testing
+    - name: Install vagrant role
+      become: yes
+      import_role:
+        name: andrewrothstein.vagrant
